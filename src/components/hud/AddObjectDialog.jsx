@@ -4,8 +4,8 @@ import { useScene } from '../../hooks/useScene';
 const OBJECT_OPTIONS = [
   { value: 'cube', label: 'Cube' },
   { value: 'sphere', label: 'Sphere' },
-  { value: 'custom1', label: 'Custom Object 1' },
-  { value: 'custom2', label: 'Custom Object 2' },
+  { value: 'custom1', label: 'Duck (GLTF)' },
+  { value: 'custom2', label: 'Fox (GLTF)' },
 ];
 
 export function AddObjectDialog({ isOpen, onClose }) {
