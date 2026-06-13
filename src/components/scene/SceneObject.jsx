@@ -5,73 +5,75 @@ import { useScene } from '../../hooks/useScene';
 import { useDrag } from '../../hooks/useDrag';
 import { SceneContext } from '../../contexts/SceneContext';
 
+// Khronos glTF Sample Assets — canonical, permanently maintained public GLB files
 const CUSTOM1_URL =
-  'https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/duck/model.gltf';
+  'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
 const CUSTOM2_URL =
-  'https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/low-poly-truck/model.gltf';
+  'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb';
 
-/**
- * Error boundary that catches GLTF load failures.
- * Reports the error via SceneContext toast and renders nothing.
- */
 class GLTFErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
   }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
+  static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(error) {
-    // Report to SceneContext toast if context is available
-    const { onError } = this.props;
-    if (onError) {
-      onError(`Failed to load 3D model. ${error.message || ''}`);
-    }
+    if (this.props.onError) this.props.onError(`Failed to load 3D model. ${error.message || ''}`);
   }
-
   render() {
-    if (this.state.hasError) {
-      // Render nothing — don't show a broken object
-      return null;
-    }
+    if (this.state.hasError) return null;
     return this.props.children;
   }
 }
 
-function CustomModel({ url, position, instanceId, isThisDragging, onPointerDown }) {
+function CustomModel({ url, position, instanceId, finalScale, isThisDragging, isSelected, onPointerDown, onDoubleClick, onSelect }) {
   const { scene } = useGLTF(url);
-  const groupRef = useRef();
+  const clonedRef = useRef(null);
+  const normalizedScaleRef = useRef(1);
 
   useEffect(() => {
     if (!scene) return;
-    const box = new Box3().setFromObject(scene);
+    const clone = scene.clone(true);
+    const box = new Box3().setFromObject(clone);
     const size = new Vector3();
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      const scale = 2 / maxDim;
-      scene.scale.set(scale, scale, scale);
+      const s = 1.5 / maxDim;
+      normalizedScaleRef.current = s;
+      clone.scale.set(s, s, s);
+      box.setFromObject(clone);
+      clone.position.y -= box.min.y;
     }
+    clonedRef.current = clone;
   }, [scene]);
 
-  const dragScale = isThisDragging ? 1.1 : 1.0;
+  if (!clonedRef.current) return null;
+
+  // finalScale is the user's resize value (1 = default); drag adds 1.1× on top
+  const s = finalScale * (isThisDragging ? 1.1 : 1.0);
 
   return (
     <group
-      ref={groupRef}
       position={[position.x, 0, position.z]}
-      scale={[dragScale, dragScale, dragScale]}
-      onPointerDown={(e) => onPointerDown(e, instanceId)}
+      scale={[s, s, s]}
+      onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e, instanceId); }}
+      onClick={(e) => { e.stopPropagation(); onSelect(instanceId); }}
+      onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick(instanceId); }}
     >
-      <primitive object={scene} />
+      {/* Selection ring */}
+      {isSelected && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01 / s, 0]}>
+          <ringGeometry args={[1.1 / s, 1.3 / s, 32]} />
+          <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
+        </mesh>
+      )}
+      <primitive object={clonedRef.current} />
     </group>
   );
 }
 
-function CustomModelWithFallback({ url, position, instanceId, isThisDragging, onPointerDown }) {
+function CustomModelWithFallback(props) {
   return (
     <SceneContext.Consumer>
       {(ctx) => (
@@ -79,13 +81,7 @@ function CustomModelWithFallback({ url, position, instanceId, isThisDragging, on
           onError={(msg) => ctx && ctx.setToast({ message: msg, type: 'error' })}
         >
           <Suspense fallback={null}>
-            <CustomModel
-              url={url}
-              position={position}
-              instanceId={instanceId}
-              isThisDragging={isThisDragging}
-              onPointerDown={onPointerDown}
-            />
+            <CustomModel {...props} />
           </Suspense>
         </GLTFErrorBoundary>
       )}
@@ -93,54 +89,59 @@ function CustomModelWithFallback({ url, position, instanceId, isThisDragging, on
   );
 }
 
-export function SceneObject({ instanceId, type, position }) {
-  const { isDragging, dragId } = useScene();
+export function SceneObject({ instanceId, type, position, scale = 1 }) {
+  const { isDragging, dragId, selectedId, setSelectedId, removeObject } = useScene();
   const { onPointerDown } = useDrag();
   const isThisDragging = isDragging && dragId === instanceId;
+  const isSelected = selectedId === instanceId;
 
-  if (type === 'custom1') {
-    return (
-      <CustomModelWithFallback
-        url={CUSTOM1_URL}
-        position={position}
-        instanceId={instanceId}
-        isThisDragging={isThisDragging}
-        onPointerDown={onPointerDown}
-      />
-    );
-  }
+  const handleDoubleClick = (id) => removeObject(id);
+  const handleSelect = (id) => setSelectedId(selectedId === id ? null : id);
 
-  if (type === 'custom2') {
-    return (
-      <CustomModelWithFallback
-        url={CUSTOM2_URL}
-        position={position}
-        instanceId={instanceId}
-        isThisDragging={isThisDragging}
-        onPointerDown={onPointerDown}
-      />
-    );
-  }
+  const commonProps = {
+    position,
+    instanceId,
+    finalScale: scale,
+    isThisDragging,
+    isSelected,
+    onPointerDown,
+    onDoubleClick: handleDoubleClick,
+    onSelect: handleSelect,
+  };
 
-  const geometry =
-    type === 'cube' ? (
-      <boxGeometry args={[1, 1, 1]} />
-    ) : (
-      <sphereGeometry args={[0.5, 32, 32]} />
-    );
+  if (type === 'custom1') return <CustomModelWithFallback url={CUSTOM1_URL} {...commonProps} />;
+  if (type === 'custom2') return <CustomModelWithFallback url={CUSTOM2_URL} {...commonProps} />;
+
+  const s = scale * (isThisDragging ? 1.1 : 1.0);
+  const geometry = type === 'cube'
+    ? <boxGeometry args={[1, 1, 1]} />
+    : <sphereGeometry args={[0.5, 32, 32]} />;
 
   return (
-    <mesh
-      position={[position.x, 0.5, position.z]}
-      scale={isThisDragging ? 1.1 : 1.0}
-      onPointerDown={(e) => onPointerDown(e, instanceId)}
+    <group
+      position={[position.x, 0, position.z]}
+      onClick={(e) => { e.stopPropagation(); handleSelect(instanceId); }}
     >
-      {geometry}
-      <meshStandardMaterial
-        color="royalblue"
-        emissive={isThisDragging ? 'orange' : 'black'}
-        emissiveIntensity={isThisDragging ? 0.4 : 0}
-      />
-    </mesh>
+      {/* Selection ring */}
+      {isSelected && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+          <ringGeometry args={[0.75 * scale, 0.9 * scale, 32]} />
+          <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
+        </mesh>
+      )}
+      <mesh
+        position={[0, 0.5 * scale, 0]}
+        scale={[s, s, s]}
+        onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e, instanceId); }}
+        onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(instanceId); }}
+      >
+        {geometry}
+        <meshStandardMaterial
+          color={isSelected ? '#93c5fd' : 'royalblue'}
+          emissive={isThisDragging ? 'orange' : 'black'}
+          emissiveIntensity={isThisDragging ? 0.4 : 0}
+        />
+      </mesh>
+    </group>
   );
 }
