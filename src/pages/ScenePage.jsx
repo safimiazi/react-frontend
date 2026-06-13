@@ -31,17 +31,7 @@ export default function ScenePage() {
   };
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        backgroundImage: 'url("../../background-image.jpeg")', 
-        backgroundSize: "cover", 
-        backgroundPosition: "center", 
-        backgroundRepeat: "no-repeat", 
-      }}
-    >
+    <div className="relative w-screen h-screen bg-cover bg-center bg-no-repeat bg-[url('/background-image.jpeg')]">
       <SceneCanvas />
       <SceneHUD onSave={handleSave} />
     </div>

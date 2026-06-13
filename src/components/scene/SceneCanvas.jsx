@@ -14,7 +14,7 @@ export function SceneCanvas() {
     <Canvas
       camera={{ fov: 60, position: [0, 15, 20], near: 0.1, far: 1000 }}
       shadows
-      style={{ width: '100vw', height: '100vh' }}
+      className="w-screen h-screen"
     >
       <Lights />
       <GroundPlane

@@ -17,24 +17,7 @@ export function Toast() {
   const isSuccess = toast.type === 'success';
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: '24px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        backgroundColor: isSuccess ? '#16a34a' : '#dc2626',
-        color: '#ffffff',
-        padding: '12px 24px',
-        borderRadius: '8px',
-        fontSize: '14px',
-        fontWeight: '500',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-        pointerEvents: 'none',
-        zIndex: 1000,
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-md text-sm font-medium shadow-lg pointer-events-none z-[1000] whitespace-nowrap ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`}>
       {toast.message}
     </div>
   );

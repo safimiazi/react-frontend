@@ -73,13 +73,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Create Account</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] font-sans">
+      <div className="bg-[#1a1a1a] border border-[#2e2e2e] rounded-xl p-10 w-full max-w-md shadow-2xl">
+        <h1 className="m-0 mb-7 text-2xl font-extrabold text-white text-center">Create Account</h1>
 
-        <form onSubmit={handleSubmit} noValidate style={styles.form}>
-          <div style={styles.field}>
-            <label htmlFor="email" style={styles.label}>Email</label>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="email" className="text-sm font-medium text-slate-400">Email</label>
             <input
               id="email"
               type="email"
@@ -88,12 +88,12 @@ export default function RegisterPage() {
               placeholder="you@example.com"
               required
               autoComplete="email"
-              style={styles.input}
+              className="px-3 py-2 rounded-lg border border-[#2e2e2e] bg-[#0f0f0f] text-white text-base outline-none"
             />
           </div>
 
-          <div style={styles.field}>
-            <label htmlFor="password" style={styles.label}>Password</label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="password" className="text-sm font-medium text-slate-400">Password</label>
             <input
               id="password"
               type="password"
@@ -102,19 +102,15 @@ export default function RegisterPage() {
               placeholder="At least 8 characters"
               required
               autoComplete="new-password"
-              style={styles.input}
+              className="px-3 py-2 rounded-lg border border-[#2e2e2e] bg-[#0f0f0f] text-white text-base outline-none"
             />
             {errors.password && (
-              <p role="alert" style={styles.fieldError}>
-                {errors.password}
-              </p>
+              <p role="alert" className="m-0 text-sm text-[#fca5a5]">{errors.password}</p>
             )}
           </div>
 
-          <div style={styles.field}>
-            <label htmlFor="confirmPassword" style={styles.label}>
-              Confirm Password
-            </label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-400">Confirm Password</label>
             <input
               id="confirmPassword"
               type="password"
@@ -123,126 +119,32 @@ export default function RegisterPage() {
               placeholder="Repeat your password"
               required
               autoComplete="new-password"
-              style={styles.input}
+              className="px-3 py-2 rounded-lg border border-[#2e2e2e] bg-[#0f0f0f] text-white text-base outline-none"
             />
             {errors.confirmPassword && (
-              <p role="alert" style={styles.fieldError}>
-                {errors.confirmPassword}
-              </p>
+              <p role="alert" className="m-0 text-sm text-[#fca5a5]">{errors.confirmPassword}</p>
             )}
           </div>
 
           {errors.general && (
-            <p role="alert" style={styles.error}>
-              {errors.general}
-            </p>
+            <p role="alert" className="m-0 px-3 py-2 rounded-md bg-[#2d0b0b] border border-[#7f1d1d] text-[#fca5a5] text-sm">{errors.general}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
+            className={`px-4 py-3 rounded-lg bg-indigo-600 text-white text-base font-semibold cursor-pointer transition ${loading ? 'opacity-70' : 'opacity-100'}`}
           >
             {loading ? 'Creating account…' : 'Sign Up'}
           </button>
         </form>
 
-        <p style={styles.footer}>
-          Already have an account?{' '}
-          <Link to="/" style={styles.link}>
-            Log In
-          </Link>
+        <p className="mt-6 text-center text-sm text-slate-400">Already have an account?{' '}
+          <Link to="/" className="text-indigo-400 font-medium">Log In</Link>
         </p>
       </div>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    background: '#0f0f0f',
-    fontFamily: 'system-ui, sans-serif',
-  },
-  card: {
-    background: '#1a1a1a',
-    border: '1px solid #2e2e2e',
-    borderRadius: '12px',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '400px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-  },
-  title: {
-    margin: '0 0 1.75rem',
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    color: '#ffffff',
-    textAlign: 'center',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.25rem',
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.4rem',
-  },
-  label: {
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    color: '#a1a1a1',
-  },
-  input: {
-    padding: '0.625rem 0.875rem',
-    borderRadius: '8px',
-    border: '1px solid #2e2e2e',
-    background: '#0f0f0f',
-    color: '#ffffff',
-    fontSize: '1rem',
-    outline: 'none',
-    transition: 'border-color 0.15s',
-  },
-  fieldError: {
-    margin: 0,
-    fontSize: '0.8rem',
-    color: '#fca5a5',
-  },
-  error: {
-    margin: 0,
-    padding: '0.625rem 0.875rem',
-    borderRadius: '8px',
-    background: '#2d0b0b',
-    border: '1px solid #7f1d1d',
-    color: '#fca5a5',
-    fontSize: '0.875rem',
-  },
-  button: {
-    padding: '0.75rem',
-    borderRadius: '8px',
-    border: 'none',
-    background: '#4f46e5',
-    color: '#ffffff',
-    fontSize: '1rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'background 0.15s',
-    marginTop: '0.25rem',
-  },
-  footer: {
-    marginTop: '1.5rem',
-    textAlign: 'center',
-    fontSize: '0.875rem',
-    color: '#6b7280',
-  },
-  link: {
-    color: '#818cf8',
-    textDecoration: 'none',
-    fontWeight: 500,
-  },
-};
+

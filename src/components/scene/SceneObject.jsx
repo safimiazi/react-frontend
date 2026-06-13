@@ -1,4 +1,4 @@
-import { useEffect, useRef, Component, Suspense } from 'react';
+import { useEffect, useRef, useState, Component, Suspense } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Box3, Vector3 } from 'three';
 import { useScene } from '../../hooks/useScene';
@@ -28,8 +28,8 @@ class GLTFErrorBoundary extends Component {
 
 function CustomModel({ url, position, instanceId, finalScale, isThisDragging, isSelected, onPointerDown, onDoubleClick, onSelect }) {
   const { scene } = useGLTF(url);
-  const clonedRef = useRef(null);
-  const normalizedScaleRef = useRef(1);
+  const [cloned, setCloned] = useState(null);
+  const [normalizedScale, setNormalizedScale] = useState(1);
 
   useEffect(() => {
     if (!scene) return;
@@ -39,19 +39,18 @@ function CustomModel({ url, position, instanceId, finalScale, isThisDragging, is
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      const s = 1.5 / maxDim;
-      normalizedScaleRef.current = s;
-      clone.scale.set(s, s, s);
-      box.setFromObject(clone);
+      const norm = 1.5 / maxDim;
+      setNormalizedScale(norm);
+      // don't permanently mutate scale here; apply normalization through group scale
       clone.position.y -= box.min.y;
     }
-    clonedRef.current = clone;
+    setCloned(clone);
   }, [scene]);
 
-  if (!clonedRef.current) return null;
+  if (!cloned) return null;
 
-  // finalScale is the user's resize value (1 = default); drag adds 1.1× on top
-  const s = finalScale * (isThisDragging ? 1.1 : 1.0);
+  // finalScale is the user's resize value (1 = default); include normalization and drag multiplier
+  const s = (normalizedScale || 1) * finalScale * (isThisDragging ? 1.1 : 1.0);
 
   return (
     <group
@@ -68,7 +67,7 @@ function CustomModel({ url, position, instanceId, finalScale, isThisDragging, is
           <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
         </mesh>
       )}
-      <primitive object={clonedRef.current} />
+      <primitive object={cloned} />
     </group>
   );
 }
