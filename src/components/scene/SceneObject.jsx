@@ -1,24 +1,27 @@
-import { useEffect, useRef, useState, Component, Suspense } from 'react';
-import { useGLTF } from '@react-three/drei';
-import { Box3, Vector3 } from 'three';
-import { useScene } from '../../hooks/useScene';
-import { useDrag } from '../../hooks/useDrag';
-import { SceneContext } from '../../contexts/SceneContext';
+import { useEffect, useRef, useState, Component, Suspense } from "react";
+import { useGLTF } from "@react-three/drei";
+import { Box3, Vector3 } from "three";
+import { useScene } from "../../hooks/useScene";
+import { useDrag } from "../../hooks/useDrag";
+import { SceneContext } from "../../contexts/SceneContext";
 
 // Khronos glTF Sample Assets — canonical, permanently maintained public GLB files
 const CUSTOM1_URL =
-  'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
+  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
 const CUSTOM2_URL =
-  'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb';
+  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb";
 
 class GLTFErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError() { return { hasError: true }; }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
   componentDidCatch(error) {
-    if (this.props.onError) this.props.onError(`Failed to load 3D model. ${error.message || ''}`);
+    if (this.props.onError)
+      this.props.onError(`Failed to load 3D model. ${error.message || ""}`);
   }
   render() {
     if (this.state.hasError) return null;
@@ -26,7 +29,17 @@ class GLTFErrorBoundary extends Component {
   }
 }
 
-function CustomModel({ url, position, instanceId, finalScale, isThisDragging, isSelected, onPointerDown, onDoubleClick, onSelect }) {
+function CustomModel({
+  url,
+  position,
+  instanceId,
+  finalScale,
+  isThisDragging,
+  isSelected,
+  onPointerDown,
+  onDoubleClick,
+  onSelect,
+}) {
   const { scene } = useGLTF(url);
   const [cloned, setCloned] = useState(null);
   const [normalizedScale, setNormalizedScale] = useState(1);
@@ -56,9 +69,18 @@ function CustomModel({ url, position, instanceId, finalScale, isThisDragging, is
     <group
       position={[position.x, 0, position.z]}
       scale={[s, s, s]}
-      onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e, instanceId); }}
-      onClick={(e) => { e.stopPropagation(); onSelect(instanceId); }}
-      onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick(instanceId); }}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        onPointerDown(e, instanceId);
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(instanceId);
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick(instanceId);
+      }}
     >
       {/* Selection ring */}
       {isSelected && (
@@ -77,7 +99,9 @@ function CustomModelWithFallback(props) {
     <SceneContext.Consumer>
       {(ctx) => (
         <GLTFErrorBoundary
-          onError={(msg) => ctx && ctx.setToast({ message: msg, type: 'error' })}
+          onError={(msg) =>
+            ctx && ctx.setToast({ message: msg, type: "error" })
+          }
         >
           <Suspense fallback={null}>
             <CustomModel {...props} />
@@ -89,7 +113,8 @@ function CustomModelWithFallback(props) {
 }
 
 export function SceneObject({ instanceId, type, position, scale = 1 }) {
-  const { isDragging, dragId, selectedId, setSelectedId, removeObject } = useScene();
+  const { isDragging, dragId, selectedId, setSelectedId, removeObject } =
+    useScene();
   const { onPointerDown } = useDrag();
   const isThisDragging = isDragging && dragId === instanceId;
   const isSelected = selectedId === instanceId;
@@ -108,18 +133,63 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
     onSelect: handleSelect,
   };
 
-  if (type === 'custom1') return <CustomModelWithFallback url={CUSTOM1_URL} {...commonProps} />;
-  if (type === 'custom2') return <CustomModelWithFallback url={CUSTOM2_URL} {...commonProps} />;
+  if (type === "custom1")
+    return <CustomModelWithFallback url={CUSTOM1_URL} {...commonProps} />;
+  // Render a simpler primitive for `custom2` (replace misbehaving Fox model)
+  if (type === "custom2") {
+    const sTorus = scale * (isThisDragging ? 1.1 : 1.0);
+    return (
+      <group
+        position={[position.x, 0, position.z]}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSelect(instanceId);
+        }}
+      >
+        {isSelected && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+            <ringGeometry args={[0.75 * scale, 0.9 * scale, 32]} />
+            <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
+          </mesh>
+        )}
+        <mesh
+          position={[0, 0.6 * scale, 0]}
+          scale={[sTorus, sTorus, sTorus]}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            onPointerDown(e, instanceId);
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            handleDoubleClick(instanceId);
+          }}
+        >
+          <torusGeometry args={[0.6, 0.2, 16, 100]} />
+          <meshStandardMaterial
+            color={isSelected ? "#93c5fd" : "seagreen"}
+            emissive={isThisDragging ? "orange" : "black"}
+            emissiveIntensity={isThisDragging ? 0.4 : 0}
+          />
+        </mesh>
+      </group>
+    );
+  }
 
   const s = scale * (isThisDragging ? 1.1 : 1.0);
-  const geometry = type === 'cube'
-    ? <boxGeometry args={[1, 1, 1]} />
-    : <sphereGeometry args={[0.5, 32, 32]} />;
+  const geometry =
+    type === "cube" ? (
+      <boxGeometry args={[1, 1, 1]} />
+    ) : (
+      <sphereGeometry args={[0.5, 32, 32]} />
+    );
 
   return (
     <group
       position={[position.x, 0, position.z]}
-      onClick={(e) => { e.stopPropagation(); handleSelect(instanceId); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleSelect(instanceId);
+      }}
     >
       {/* Selection ring */}
       {isSelected && (
@@ -131,13 +201,19 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
       <mesh
         position={[0, 0.5 * scale, 0]}
         scale={[s, s, s]}
-        onPointerDown={(e) => { e.stopPropagation(); onPointerDown(e, instanceId); }}
-        onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(instanceId); }}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onPointerDown(e, instanceId);
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          handleDoubleClick(instanceId);
+        }}
       >
         {geometry}
         <meshStandardMaterial
-          color={isSelected ? '#93c5fd' : 'royalblue'}
-          emissive={isThisDragging ? 'orange' : 'black'}
+          color={isSelected ? "#93c5fd" : "royalblue"}
+          emissive={isThisDragging ? "orange" : "black"}
           emissiveIntensity={isThisDragging ? 0.4 : 0}
         />
       </mesh>

@@ -5,7 +5,7 @@ const OBJECT_OPTIONS = [
   { value: 'cube', label: 'Cube' },
   { value: 'sphere', label: 'Sphere' },
   { value: 'custom1', label: 'Duck (GLTF)' },
-  { value: 'custom2', label: 'Fox (GLTF)' },
+  { value: 'custom2', label: 'Torus (primitive)' },
 ];
 
 export function AddObjectDialog({ isOpen, onClose }) {
