@@ -6,17 +6,18 @@ export function SceneProvider({ children }) {
   const [objects, setObjectsState] = useState([]);
   const [isDragging, setIsDraggingState] = useState(false);
   const [dragId, setDragId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const [toast, setToastState] = useState(null);
   const toastTimerRef = useRef(null);
 
   function addObject(type) {
     const instanceId = crypto.randomUUID();
-    const x = Math.random() * 20 - 10; // rand(-10, 10)
-    const z = Math.random() * 20 - 10; // rand(-10, 10)
+    const x = Math.random() * 20 - 10;
+    const z = Math.random() * 20 - 10;
     const y = 0;
     setObjectsState((prev) => [
       ...prev,
-      { instanceId, type, position: { x, y, z } },
+      { instanceId, type, position: { x, y, z }, scale: 1 },
     ]);
   }
 
@@ -28,8 +29,27 @@ export function SceneProvider({ children }) {
     );
   }
 
+  function updateScale(instanceId, scale) {
+    setObjectsState((prev) =>
+      prev.map((obj) =>
+        obj.instanceId === instanceId ? { ...obj, scale } : obj
+      )
+    );
+  }
+
+  function removeObject(instanceId) {
+    setObjectsState((prev) => prev.filter((obj) => obj.instanceId !== instanceId));
+    setSelectedId((prev) => (prev === instanceId ? null : prev));
+  }
+
+  function clearScene() {
+    setObjectsState([]);
+    setSelectedId(null);
+  }
+
   function setObjects(objects) {
-    setObjectsState(objects);
+    // Ensure every loaded object has a scale field
+    setObjectsState(objects.map((o) => ({ scale: 1, ...o })));
   }
 
   function setIsDragging(bool, id) {
@@ -54,9 +74,14 @@ export function SceneProvider({ children }) {
         objects,
         isDragging,
         dragId,
+        selectedId,
+        setSelectedId,
         toast,
         addObject,
         updatePosition,
+        updateScale,
+        removeObject,
+        clearScene,
         setObjects,
         setIsDragging,
         setToast,
