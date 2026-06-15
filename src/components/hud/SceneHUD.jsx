@@ -4,6 +4,18 @@ import { AddObjectDialog } from "./AddObjectDialog";
 import { Toast } from "./Toast";
 import { useScene } from "../../hooks/useScene";
 import useAuth from "../../hooks/useAuth";
+import { 
+  Plus, 
+  Trash2, 
+  Save, 
+  LogOut, 
+  Minus, 
+  RotateCcw,
+  X,
+  Layers,
+  AlertCircle,
+  ChevronRight
+} from 'lucide-react';
 
 export function SceneHUD({ onSave }) {
   const [showDialog, setShowDialog] = useState(false);
@@ -34,57 +46,67 @@ export function SceneHUD({ onSave }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
       {/* ── Top-right button group ── */}
-      <div className="absolute top-4 right-4 flex gap-2.5 items-center pointer-events-auto">
-        <div
-          title={`${objects.length} object${objects.length !== 1 ? "s" : ""} in scene`}
-          className="px-2.5 py-1 rounded-full bg-[rgba(30,30,46,0.85)] border border-white/15 text-slate-400 text-xs font-medium select-none backdrop-blur-md"
-        >
-          {objects.length} object{objects.length !== 1 ? "s" : ""}
+      <div className="absolute top-4 right-4 flex gap-2 items-center pointer-events-auto">
+        {/* Object Counter */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e1e2e]/90 backdrop-blur-md border border-gray-700 text-gray-300 text-xs font-medium shadow-lg">
+          <Layers size={14} className="text-orange-500" />
+          <span>{objects.length} object{objects.length !== 1 ? "s" : ""}</span>
         </div>
 
+        {/* Add Object Button */}
         <button
           onClick={() => setShowDialog(true)}
-          className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer border border-white/20 bg-[rgba(30,30,46,0.85)] text-slate-100"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer bg-orange-500 text-white hover:bg-orange-600 transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
         >
-          + Add Object
+          <Plus size={16} />
+          Add Object
         </button>
 
+        {/* Clear Scene Button */}
         {objects.length > 0 && (
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-red-500 text-white"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer bg-red-500/90 hover:bg-red-600 text-white transition-all duration-200 shadow-lg"
           >
-            Clear Scene
+            <Trash2 size={16} />
+            Clear
           </button>
         )}
 
+        {/* Save Button */}
         <button
           onClick={onSave}
-          className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-blue-500 text-white"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-200 shadow-lg"
         >
+          <Save size={16} />
           Save
         </button>
 
+        {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer border border-white/15 bg-[rgba(30,30,46,0.7)] text-slate-400"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer border border-gray-600 bg-[#1e1e2e]/90 backdrop-blur-md text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200"
         >
-          Log Out
+          <LogOut size={16} />
+          Logout
         </button>
       </div>
 
       {/* ── Selected-object scale panel ── */}
       {selectedObj && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[rgba(20,20,34,0.92)] border border-white/15 rounded-lg px-5 py-3 flex items-center gap-3 pointer-events-auto backdrop-blur-md shadow-2xl min-w-[320px]">
-          {/* Object label */}
-          <span className="text-[#94a3b8] text-[13px] whitespace-nowrap capitalize">
-            {selectedObj.type}
-          </span>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#1e1e2e]/95 backdrop-blur-md border border-gray-700 rounded-xl px-4 py-2.5 flex items-center gap-2 pointer-events-auto shadow-2xl animate-in slide-in-from-bottom-5 duration-200">
+          {/* Object type badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            <span className="text-orange-400 text-xs font-medium capitalize">
+              {selectedObj.type}
+            </span>
+          </div>
 
-          {/* Scale label */}
-          <span className="text-[#64748b] text-[12px] whitespace-nowrap">
-            Size
-          </span>
+          <div className="h-6 w-px bg-gray-700" />
+
+          {/* Size label */}
+          <span className="text-gray-400 text-xs">Size</span>
 
           {/* Decrease button */}
           <button
@@ -94,24 +116,28 @@ export function SceneHUD({ onSave }) {
                 Math.max(0.2, +(selectedObj.scale - 0.1).toFixed(2)),
               )
             }
-            title="Shrink"
-            className="px-2.5 py-1 rounded-md text-base text-slate-300 bg-[rgba(255,255,255,0.07)] border border-white/12 leading-none cursor-pointer"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 bg-gray-800/50 border border-gray-700 hover:bg-gray-700 hover:border-orange-500/50 hover:text-orange-400 transition-all duration-200"
           >
-            −
+            <Minus size={14} />
           </button>
 
           {/* Slider */}
-          <input
-            type="range"
-            min="0.2"
-            max="4"
-            step="0.05"
-            value={selectedObj.scale ?? 1}
-            onChange={(e) =>
-              updateScale(selectedObj.instanceId, parseFloat(e.target.value))
-            }
-            className="flex-1 accent-[#3b82f6] cursor-pointer"
-          />
+          <div className="relative w-48">
+            <input
+              type="range"
+              min="0.2"
+              max="4"
+              step="0.05"
+              value={selectedObj.scale ?? 1}
+              onChange={(e) =>
+                updateScale(selectedObj.instanceId, parseFloat(e.target.value))
+              }
+              className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-700"
+              style={{
+                background: `linear-gradient(to right, #f97316 0%, #f97316 ${((selectedObj.scale ?? 1 - 0.2) / 3.8) * 100}%, #374151 ${((selectedObj.scale ?? 1 - 0.2) / 3.8) * 100}%, #374151 100%)`
+              }}
+            />
+          </div>
 
           {/* Increase button */}
           <button
@@ -121,83 +147,84 @@ export function SceneHUD({ onSave }) {
                 Math.min(4, +(selectedObj.scale + 0.1).toFixed(2)),
               )
             }
-            title="Grow"
-            className="px-2.5 py-1 rounded-md text-base text-slate-300 bg-[rgba(255,255,255,0.07)] border border-white/12 leading-none cursor-pointer"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 bg-gray-800/50 border border-gray-700 hover:bg-gray-700 hover:border-orange-500/50 hover:text-orange-400 transition-all duration-200"
           >
-            +
+            <ChevronRight size={14} />
           </button>
 
           {/* Current value */}
-          <span className="text-[#f1f5f9] text-[13px] min-w-[36px] text-right">
-            {(selectedObj.scale ?? 1).toFixed(2)}×
+          <span className="text-orange-400 text-sm font-mono min-w-[45px] text-right font-semibold">
+            {(selectedObj.scale ?? 1).toFixed(2)}x
           </span>
 
-          {/* Reset */}
+          {/* Reset button */}
           <button
             onClick={() => updateScale(selectedObj.instanceId, 1)}
-            title="Reset size"
-            className="px-2 py-1 text-[10px] rounded-md text-slate-300 bg-[rgba(255,255,255,0.07)] border border-white/12"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 bg-gray-800/50 border border-gray-700 hover:bg-gray-700 hover:text-orange-400 transition-all duration-200"
           >
-            Reset
+            <RotateCcw size={14} />
           </button>
 
-          {/* Delete */}
+          {/* Delete button */}
           <button
             onClick={() => removeObject(selectedObj.instanceId)}
-            title="Delete object"
-            className="px-2.5 py-1 rounded-md text-base bg-[rgba(239,68,68,0.15)] text-[#f87171] border border-white/12"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
           >
-            🗑
+            <Trash2 size={14} />
           </button>
 
-          {/* Close panel */}
+          {/* Close panel button */}
           <button
             onClick={() => setSelectedId(null)}
-            title="Deselect"
-            className="px-2 py-1 rounded-md text-slate-300 bg-[rgba(255,255,255,0.07)] border border-white/12"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 bg-gray-800/50 border border-gray-700 hover:bg-gray-700 hover:text-white transition-all duration-200"
           >
-            ✕
+            <X size={14} />
           </button>
         </div>
       )}
 
-      {/* ── Bottom-left hint ── */}
-      <div className="absolute bottom-4 left-4 text-[12px] text-[rgba(255,255,255,0.3)] pointer-events-none select-none">
-        Click to select · Drag to move · Double-click to delete
-      </div>
 
+
+      {/* Add Object Dialog */}
       <AddObjectDialog
         isOpen={showDialog}
         onClose={() => setShowDialog(false)}
       />
 
+      {/* Clear Confirmation Dialog */}
       {showClearConfirm && (
         <div
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowClearConfirm(false);
           }}
-          className="absolute inset-0 bg-black/55 flex items-center justify-center z-[600] pointer-events-auto"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[600] pointer-events-auto animate-in fade-in duration-200"
         >
-          <div className="bg-[#1e1e2e] border border-[#374151] rounded-lg p-6 min-w-[300px] max-w-[380px] text-[#f1f5f9] shadow-2xl">
-            <h2 className="m-0 mb-2 text-[18px] text-[#f8fafc]">
-              Clear Scene?
-            </h2>
-            <p className="m-0 mb-6 text-[14px] text-[#94a3b8]">
-              All {objects.length} object{objects.length !== 1 ? "s" : ""} will
-              be removed.
-            </p>
-            <div className="flex gap-3 justify-end">
+          <div className="bg-[#1e1e2e] border border-gray-700 rounded-xl p-5 min-w-[340px] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertCircle size={20} className="text-red-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-100 mb-1">
+                  Clear Scene?
+                </h2>
+                <p className="text-sm text-gray-400">
+                  All {objects.length} object{objects.length !== 1 ? "s" : ""} will be permanently removed from the scene.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-5">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer border border-white/15 bg-[rgba(30,30,46,0.7)] text-slate-400"
+                className="px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer border border-gray-600 bg-transparent text-gray-300 hover:bg-gray-800 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleClearConfirm}
-                className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-red-500 text-white"
+                className="px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-all duration-200 shadow-lg"
               >
-                Clear
+                Clear Scene
               </button>
             </div>
           </div>

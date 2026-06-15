@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Component, Suspense } from "react";
+import { useMemo, Component, Suspense } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3 } from "three";
 import { useScene } from "../../hooks/useScene";
@@ -6,10 +6,9 @@ import { useDrag } from "../../hooks/useDrag";
 import { SceneContext } from "../../contexts/SceneContext";
 
 // Khronos glTF Sample Assets — canonical, permanently maintained public GLB files
-const CUSTOM1_URL =
-  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
-const CUSTOM2_URL =
-  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb";
+const CUSTOM1_URL = "/models/Duck.glb";
+// Public human GLTF (CesiumMan) as an example human character
+const CUSTOM3_URL = "/models/human.glb";
 
 class GLTFErrorBoundary extends Component {
   constructor(props) {
@@ -41,29 +40,26 @@ function CustomModel({
   onSelect,
 }) {
   const { scene } = useGLTF(url);
-  const [cloned, setCloned] = useState(null);
-  const [normalizedScale, setNormalizedScale] = useState(1);
-
-  useEffect(() => {
-    if (!scene) return;
+  const model = useMemo(() => {
+    if (!scene) return { cloned: null, normalizedScale: 1 };
     const clone = scene.clone(true);
     const box = new Box3().setFromObject(clone);
     const size = new Vector3();
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
+    let norm = 1;
     if (maxDim > 0) {
-      const norm = 1.5 / maxDim;
-      setNormalizedScale(norm);
+      norm = 1.5 / maxDim;
       // don't permanently mutate scale here; apply normalization through group scale
       clone.position.y -= box.min.y;
     }
-    setCloned(clone);
+    return { cloned: clone, normalizedScale: norm };
   }, [scene]);
 
-  if (!cloned) return null;
+  if (!model.cloned) return null;
 
   // finalScale is the user's resize value (1 = default); include normalization and drag multiplier
-  const s = (normalizedScale || 1) * finalScale * (isThisDragging ? 1.1 : 1.0);
+  const s = (model.normalizedScale || 1) * finalScale * (isThisDragging ? 1.1 : 1.0);
 
   return (
     <group
@@ -89,7 +85,7 @@ function CustomModel({
           <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
         </mesh>
       )}
-      <primitive object={cloned} />
+      <primitive object={model.cloned} />
     </group>
   );
 }
@@ -135,6 +131,8 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
 
   if (type === "custom1")
     return <CustomModelWithFallback url={CUSTOM1_URL} {...commonProps} />;
+  if (type === "custom3")
+    return <CustomModelWithFallback url={CUSTOM3_URL} {...commonProps} />;
   // Render a simpler primitive for `custom2` (replace misbehaving Fox model)
   if (type === "custom2") {
     const sTorus = scale * (isThisDragging ? 1.1 : 1.0);
