@@ -36,7 +36,6 @@ function CustomModel({
   isThisDragging,
   isSelected,
   onPointerDown,
-  onDoubleClick,
   onSelect,
 }) {
   const { scene } = useGLTF(url);
@@ -73,10 +72,7 @@ function CustomModel({
         e.stopPropagation();
         onSelect(instanceId);
       }}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick(instanceId);
-      }}
+      /* double-click intentionally removed */
     >
       {/* Selection ring */}
       {isSelected && (
@@ -109,13 +105,12 @@ function CustomModelWithFallback(props) {
 }
 
 export function SceneObject({ instanceId, type, position, scale = 1 }) {
-  const { isDragging, dragId, selectedId, setSelectedId, removeObject } =
-    useScene();
+  const { isDragging, dragId, selectedId, setSelectedId } = useScene();
   const { onPointerDown } = useDrag();
   const isThisDragging = isDragging && dragId === instanceId;
   const isSelected = selectedId === instanceId;
 
-  const handleDoubleClick = (id) => removeObject(id);
+  /* double-click intentionally removed */
   const handleSelect = (id) => setSelectedId(selectedId === id ? null : id);
 
   const commonProps = {
@@ -125,7 +120,7 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
     isThisDragging,
     isSelected,
     onPointerDown,
-    onDoubleClick: handleDoubleClick,
+    /* double-click intentionally removed */
     onSelect: handleSelect,
   };
 
@@ -157,10 +152,7 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
             e.stopPropagation();
             onPointerDown(e, instanceId);
           }}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            handleDoubleClick(instanceId);
-          }}
+          /* double-click intentionally removed */
         >
           <torusGeometry args={[0.6, 0.2, 16, 100]} />
           <meshStandardMaterial
@@ -203,10 +195,7 @@ export function SceneObject({ instanceId, type, position, scale = 1 }) {
           e.stopPropagation();
           onPointerDown(e, instanceId);
         }}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-          handleDoubleClick(instanceId);
-        }}
+        /* double-click intentionally removed */
       >
         {geometry}
         <meshStandardMaterial
