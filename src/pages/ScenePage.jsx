@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { SceneCanvas } from "../components/scene/SceneCanvas";
-import { SceneHUD } from "../components/hud/SceneHUD";
+import { SceneHUD } from "../components/common/SceneHUD";
 import { useScene } from "../hooks/useScene";
 import client from "../api/client";
 
